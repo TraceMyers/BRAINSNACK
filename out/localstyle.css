@@ -1,0 +1,148 @@
+
+:root {
+    font-family: Inter, sans-sarif;
+    font-feature-settings: 'liga' 1, 'calt' 1;
+}
+
+.header-title {
+    font-size: 2.2rem;
+    font-weight: 700;
+    letter-spacing: 0.01em;
+    margin-left: 10%;
+}
+
+.header-subtitle-0 {
+    font-size: 1.2rem;
+    font-weight: 500;
+    letter-spacing: 0.00em;
+    margin-left: 10.5%;
+    color: #333;
+}
+
+.section-title {
+    font-size: 1.2rem;
+    font-weight: 500;
+    letter-spacing: 0.00em;
+    color: #262;
+    margin-left: 10.5%;
+}
+
+.section-subtitle {
+    font-size: 1.0rem;
+    font-weight: 400;
+    letter-spacing: 0.00em;
+    color: #248;
+    margin-left: 10.5%;
+}
+
+.section-subtitle-inline {
+    font-size: 1.0rem;
+    font-weight: 500;
+    letter-spacing: 0.00em;
+    color: #248;
+}
+
+.header-subtitle-1 {
+    font-size: 1.2rem;
+    font-weight: 500;
+    letter-spacing: 0.00em;
+    margin-left: 10.5%;
+    color: #777;
+}
+
+.header-subtitle-2 {
+    font-size: 1.0rem;
+    font-weight: 500;
+    letter-spacing: 0.00em;
+    margin-left: 10.5%;
+    color: #888;
+}
+
+.left-aligned-body-0 {
+    font-size: 0.8rem;
+    font-weight: 300;
+    letter-spacing: 0.00em;
+    margin-left: 10.5%;
+    color: #222;
+}
+
+.center-div {
+    width: 50%;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.container {
+    display: flex;
+    justify-content: flex-start;
+    gap: 0;
+}
+
+.spacer {
+    height: 1em;
+}
+
+.grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr); /* 2 per row */
+    gap: 12px;
+    margin-left: 10%;
+    margin-right: 10%;
+}
+
+.grid iframe {
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    border: 0;
+}
+
+/* load Inter */
+@font-face {
+    font-family: "Inter";
+    src: url("fonts/Inter-Regular.woff2") format("woff2");
+    font-weight: 400;
+}
+@font-face {
+    font-family: "Inter";
+    src: url("fonts/Inter-Bold.woff2") format("woff2");
+    font-weight: 700;
+}
+
+/* apply globally */
+body {
+    font-family: "Inter", system-ui, sans-serif;
+}
+
+/* html, body {
+  margin: 0;
+  padding: 0;
+} */
+
+canvas {
+  display: block;
+  left: 10.5%;
+  /* position: absolute; */
+}
+
+/* emscripten stuff*/
+.emscripten { padding-right: 0; margin-left: auto; margin-right: auto; display: block; }
+div.emscripten { text-align: center; }
+div.emscripten_border { border: 1px solid black; }
+/* the canvas *must not* have any border or padding, or mouse coords will be wrong */
+canvas.emscripten { border: 0px none; background-color: black; }
+
+#output {
+  width: 100%;
+  height: 200px;
+  margin: 0 auto;
+  margin-top: 10px;
+  border-left: 0px;
+  border-right: 0px;
+  padding-left: 0px;
+  padding-right: 0px;
+  display: block;
+  background-color: black;
+  color: white;
+  font-family: 'Lucida Console', Monaco, monospace;
+  outline: none;
+}
