@@ -84,6 +84,7 @@ void RandomDrawNpcState(TObject *Object)
                     Object->Movement.bMoving = true;
                     Object->Movement.Direction = To8WayDirection(ToPlayerDiff);
                 }
+                break;
             case ENpcState::KeepDistanceFromPlayer:
                 {
                     constexpr float32 MAX_ERROR = 0.5f;
@@ -103,6 +104,7 @@ void RandomDrawNpcState(TObject *Object)
                         Object->Movement.Direction = To8WayDirection(ToPlayerDiff);
                     }
                 }
+                break;
             default:;
             }
             return;

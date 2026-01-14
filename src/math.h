@@ -249,6 +249,8 @@ public:
         return *this;
     }
 
+    // void TVector2i ClampTo(TVector2i )
+
 public:
 
     s32 X;

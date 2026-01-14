@@ -36,13 +36,18 @@ TAllocator* GetTempAllocator();
     }                                               \
     return -1;
 
-// base heap array implementation. not meant to be used on its own. todo: gatekeep like a real developer.
+// base type for arrays. can be used as allocator-less slice type.
 template<typename T>
 class TArrayBase
 {
 public:
 
     TArrayBase() {}
+
+    TArrayBase(T* InData, s32 InCount) : Items(InData), ItemCount(InCount)
+    {
+        assert(InCount >= 0);
+    }
 
     // index into the array
     inline T& operator [](s32 i)
@@ -98,16 +103,6 @@ public:
         QuickSortHelper(Data(), Count(), SortProc);
     }
 
-    // called automatically before any allocations are made or freed. if an allocator isn't explicitly set,
-    // just assign the default allocator
-    inline void TryInitializeAllocator()
-    {
-        if (Allocator == nullptr)
-        {
-            Allocator = GetDefaultAllocator();
-        }
-    }
-
     T* begin()
     {
         return Items;
@@ -156,9 +151,6 @@ protected:
 
 protected:
 
-    // the allocator for this array is stored at runtime because it makes for less annoying templates
-    // nicer to use.
-    TAllocator* Allocator;
     T* Items;
     s32 ItemCount;
 };
@@ -226,7 +218,22 @@ public:
         memcpy(Data(), Other.Data(), Count() * sizeof(T));
     }
 
-    using TArrayBase<T>::TryInitializeAllocator;
+    inline void SetAllocator(TAllocator* InAllocator)
+    {
+        // todo: check something really bad isn't being done here
+        Allocator = InAllocator;
+    }
+
+    // called automatically before any allocations are made or freed. if an allocator isn't explicitly set,
+    // just assign the default allocator
+    inline void TryInitializeAllocator()
+    {
+        if (Allocator == nullptr)
+        {
+            Allocator = GetDefaultAllocator();
+        }
+    }
+
     using TArrayBase<T>::Data;
     using TArrayBase<T>::Count;
 
@@ -235,7 +242,8 @@ protected:
 
 protected:
 
-    using TArrayBase<T>::Allocator;
+    // the allocator for this array is stored at runtime because it makes for less annoying templates nicer to use.
+    TAllocator* Allocator;
     using TArrayBase<T>::Items;
     using TArrayBase<T>::ItemCount;
 };
@@ -422,9 +430,15 @@ public:
         SetMax(ItemCount);
     }
 
-protected:
-
-    using TArrayBase<T>::TryInitializeAllocator;
+    // called automatically before any allocations are made or freed. if an allocator isn't explicitly set,
+    // just assign the default allocator
+    inline void TryInitializeAllocator()
+    {
+        if (Allocator == nullptr)
+        {
+            Allocator = GetDefaultAllocator();
+        }
+    }
 
 public:
 
@@ -432,15 +446,10 @@ public:
 
 protected:
 
-    using TArrayBase<T>::Allocator;
+    // the allocator for this array is stored at runtime because it makes for less annoying templates nicer to use.
+    TAllocator* Allocator;
     using TArrayBase<T>::Items;
     using TArrayBase<T>::ItemCount;
     s32 ItemMax;
 
-};
-
-struct TSuperAllocatorBooks {
-    u8* LargestGapPerList;
-    TArray<u8*> GapListOfLists;
-    TArray<u8*> FlagListOfLists;
 };

@@ -37,7 +37,7 @@ void TRenderer::Init()
     WindowHeight = DEFAULT_WINDOW_HEIGHT;
 
     SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS);
-    Window = SDL_CreateWindow("Hello Sailor", WindowWidth, WindowHeight, 0);
+    Window = SDL_CreateWindow("Trace's Cool Site", WindowWidth, WindowHeight, 0);
 
     if (Window == nullptr)
     {
@@ -226,7 +226,7 @@ void TRenderer::RenderGame(float32 DeltaTime, float32 TransitionAlpha)
     }
     else if (Session.TimeInGame() > 5.0f)
     {
-        DrawText("Apologies that you probably wanted to play a cool game called BRAINSNACK. I'm still making it. Check back soon for updates :)", WindowExtent(), ETextSize::Medium, EHzTextAlign::Center, EVtTextAlign::Center, Color4f::White(), TEXT_SIZE_MEDIUM * 10.0f);
+        // DrawText("Apologies that you probably wanted to play a cool game called BRAINSNACK. I'm still making it. Check back soon for updates :)", WindowExtent(), ETextSize::Medium, EHzTextAlign::Center, EVtTextAlign::Center, Color4f::White(), TEXT_SIZE_MEDIUM * 10.0f);
     }
 }
 

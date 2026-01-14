@@ -168,7 +168,7 @@ void TSession::InitAllocators()
     RuntimeAllocator.Init(RUNTIME_ALLOCATION_SIZE, CStdAllocator);
 
     FrameAllocator.Init(FRAME_ALLOCATION_SIZE, RuntimeAllocator);
-    MainAllocator.Init(MAIN_ALLOCATION_SIZE, RuntimeAllocator);
+    // MainAllocator.Init(MAIN_ALLOCATION_SIZE, RuntimeAllocator);
     // Objects will use the defualt allocator during SetCapacity
     DefaultAllocator = &RuntimeAllocator;
     Objects.SetCapacity(OBJECT_COUNT_MAX);

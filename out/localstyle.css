@@ -40,6 +40,9 @@
     font-weight: 500;
     letter-spacing: 0.00em;
     color: #248;
+    width: 50%;
+    margin-left: auto;
+    margin-right: auto;
 }
 
 .header-subtitle-1 {
@@ -84,7 +87,7 @@
 
 .grid {
     display: grid;
-    grid-template-columns: repeat(2, 1fr); /* 2 per row */
+    grid-template-columns: repeat(1, 1fr); /* 2 per row */
     gap: 12px;
     margin-left: 10%;
     margin-right: 10%;
