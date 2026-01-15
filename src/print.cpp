@@ -1,4 +1,6 @@
 #include "print.h"
+#include "globals.h."
+#include "session.h"
 
 namespace
 {
@@ -175,10 +177,11 @@ bool PrintTVector2(s8 **Buffer, TVector2 Vector, s32 *BufLen)
 
 TString SprintImpl(const s8 *Fmt, TAllocator *Allocator, FmtArg Args[], int ArgCount)
 {
-    constexpr int BUF_LEN = 8192;
+    constexpr int BUF_LEN = 4096;
     // leave room for escape codes.
     constexpr int END_CHAR_INDEX = BUF_LEN - 4; 
     s8 Buffer[BUF_LEN];
+
 
     s8* Buf = &Buffer[0];
     s32 Remain = END_CHAR_INDEX + 1;
@@ -273,6 +276,7 @@ TString SprintImpl(const s8 *Fmt, TAllocator *Allocator, FmtArg Args[], int ArgC
 
     return TString::Copy(Buffer, Allocator);
 }
+
 
 const s8 *TruncateWithEllipsis(const s8 *InStr, s32 MaxChars)
 {

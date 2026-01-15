@@ -26,7 +26,7 @@ public:
     virtual void Realloc(void** UserData, unsigned int OldSize, unsigned int NewSize) override;
 
     // does nothing (see explanation above class name)
-    virtual void Free(void** UserData) override {};
+    virtual void Free(void** UserData) override { *UserData = nullptr; };
 
     // reset the current 
     void Reset(bool bKeepAllocation);
@@ -38,7 +38,15 @@ public:
     // reset the allocator to a previous save point
     void ResetToMark(unsigned int InMark) { Offset = InMark; }
 
+    void SetAllocationSpacer(unsigned int SpacerVal)
+    { 
+#if ALLOCATOR_DEBUG
+        AllocationSpacer = SpacerVal;
+#endif
+    }
+
 protected:
 
     unsigned int Offset;
+    unsigned int AllocationSpacer = 0;
 };

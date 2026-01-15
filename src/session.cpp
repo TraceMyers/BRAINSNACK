@@ -5,6 +5,7 @@
 #include "core.h"
 #include "session.h"
 #include "globals.h"
+#include "object/object_grid.h"
 
 void TSession::Init()
 {
@@ -16,7 +17,11 @@ void TSession::Init()
     InitAllocators();
     InitObjects();
 
+    ObjectGrid = new TObjectGrid();
+    ObjectGrid->Init();
+
     RecentFrameTimes.Init(RECENT_FRAME_TIME_COUNT, &RuntimeAllocator);
+    QueuedObjectReleases = {};
 }
 
 void TSession::Shutdown()
@@ -26,10 +31,23 @@ void TSession::Shutdown()
 
 void TSession::BeginFrame()
 {
+    QueuedObjectReleases.TempInit(1024);
 }
 
 void TSession::EndFrame()
 {
+    for (s32 i = 0; i < QueuedObjectReleases.Count(); i++)
+    {
+        ReleaseObject(QueuedObjectReleases[i]);
+    }
+    QueuedObjectReleases.Free();
+
+    if (Mode == ESessionMode::TransitionToPlayGame && Renderer.FinishedTransitionToGame())
+    {
+        Mode = ESessionMode::PlayGame;
+        TimeStartedPlay = TimeSeconds;
+    }
+
     float64 NewTimeSeconds = CurrentTime();
     _DeltaTime = CLAMP(NewTimeSeconds - TimeSeconds, DELTA_TIME_MIN, DELTA_TIME_MAX);
     TimeSeconds = NewTimeSeconds;
@@ -45,14 +63,7 @@ void TSession::EndFrame()
         }
     }
 
-    if (Mode == ESessionMode::TransitionToPlayGame && Renderer.FinishedTransitionToGame())
-    {
-        Mode = ESessionMode::PlayGame;
-        TimeStartedPlay = TimeSeconds;
-    }
-
     FrameCount++;
-
     FrameAllocator.Reset(true);
 
     if (bQuit)
@@ -106,8 +117,6 @@ void TSession::ReleaseObject(FObjectRef& ID)
         // todo: remove entity from grid
     }
 
-    Object->Attachments.Free();
-    Object->Graphics.Free();
     Objects.ReturnItem(ID.Index);
 }
 
@@ -147,7 +156,6 @@ float32 TSession::CalcSmoothedFrameTime() const
 
     const float WeightedAvgFps = WeightedFrameTimeSum / WeightSum;
     return WeightedAvgFps;
-
 }
 
 float32 TSession::CalcSmoothedFPS() const
@@ -156,6 +164,11 @@ float32 TSession::CalcSmoothedFPS() const
 }
 
 // ---------------------------------------------------------------------------------------------------------------------
+
+void TSession::QueueReturnObjectToPool(const TObject *Object)
+{
+    QueuedObjectReleases.PushUnique(Object->Self);
+}
 
 void TSession::InitAllocators()
 {
@@ -184,6 +197,8 @@ void TSession::InitAllocators()
     // used by arrays if you don't want to pass in a specific allocator
     // todo: after implement super allocator, make it the default
     DefaultAllocator = &CStdAllocator;
+
+    FrameAllocator.SetAllocationSpacer(1024);
 }
 
 void TSession::ShutdownAllocators()
@@ -212,9 +227,6 @@ void TSession::InitObjects()
     {
         SpawnObject(EObjectType::NPC, {1,1}, {}, SubType);
     }
-
-    // SubType.NpcType = ENpcType::Butterfly;
-    // SpawnObject(EObjectType::NPC, {}, {}, SubType);
 }
 
 bool TSession::DebugSwitch(bool bDebugBreak)
@@ -235,3 +247,4 @@ bool TSession::DebugSwitch(bool bDebugBreak)
         return false;
     }
 }
+

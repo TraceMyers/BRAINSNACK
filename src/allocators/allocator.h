@@ -1,5 +1,6 @@
 #pragma once
 
+#define ALLOCATOR_DEBUG true
 // the base allocator interface for the project. using virtual functions and inheritance allow for pretty ideal
 // generic code for use in array and other data structure types. the preferred style for this project is to
 // have allocators stored at runtime on the things that use them, except in contexts where the allocator is implicit.

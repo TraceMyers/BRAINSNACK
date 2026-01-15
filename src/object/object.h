@@ -16,7 +16,9 @@ enum class EObjectFlags : u32
     MoveAsAttachment        = 1 << 5,
     SkipMoveUpdate          = 1 << 6,
     SkipAIUpdate            = 1 << 7,
-    IsEditorGoober          = 1 << 8
+    IsEditorGoober          = 1 << 8,
+    ReleaseWithoutDeath     = 1 << 9,
+    IsEnemy                 = 1 << 10
 };
 
 // enable bitwise operators
@@ -105,7 +107,11 @@ struct FNpcRandomWalk
 
 struct FCharacter
 {
-    float32 HP;
+    float32 HP=1;
+    float32 Mass=1;
+    float32 CollideDamage=1;
+    float32 TakeHitCooldown=0;
+    TVector2 PhysicsVelocity;
 };
 
 struct FNpc
@@ -134,11 +140,14 @@ union FObjectSubtype
 
 class TObject
 {
+    friend class TSession;
 public:
 
     static TObject* Get(FObjectRef Ref);
 
     static TObject* TryGet(FObjectRef& Ref, bool bAllowNullify=true);
+
+    static TObject* TryGet(const FObjectRef& Ref);
 
     static bool IsValid(FObjectRef Ref);
 
@@ -161,9 +170,10 @@ public:
         return HasFlags(EObjectFlags::MoveFromInput | EObjectFlags::MoveAsAttachment);
     }
 
-    TVector2 GetPosition();
+    TVector2 GetPosition() const;
 
     inline FGraphic* PrimaryGraphic() {  return Graphics.Count() > 0 ? &Graphics[0] : nullptr; }
+    inline const FGraphic* PrimaryGraphic() const {  return Graphics.Count() > 0 ? &Graphics[0] : nullptr; }
 
     void AttachToParent(FObjectRef ParentRef, TVector2 Offset={});
 
@@ -174,13 +184,20 @@ public:
     // should use this instead of Get() or TryGet(), because it auto-detaches if the parent is invalid
     TObject* TryGetParent();
 
+    TObject* TryGetParent() const;
+
+    void Die();
+
+    void SetPosition(TVector2 NewPosition);
+
+    void GetCorners(TVector2& OutUpperLeft, TVector2& OutLowerRight, EViewSpace OutSpace = EViewSpace::World, float32 ExtentScale=1) const;
+
 public:
 
     FObjectRef Self;
     FObjectRef HeldObject;
     TDynamicArray<FObjectRef> Attachments;
     FObjectRef AttachParent;
-    TVector2 Position;
     s32 BaseDepth;
     TDynamicArray<FGraphic> Graphics;
     FObjectMovement Movement;
@@ -188,6 +205,8 @@ public:
     EDirection Orientation;
     EOverlapChannel OverlapChannels;
     ECollisionChannel CollisionChannels;
+    TVector2i GridUpperLeft;
+    TVector2i GridLowerRight;
 
     // instead of comptime subclassing, this is a dogpile approach where the runtime-identified type 
     // identifies which data the object makes use of and how it updates. good for (game-making) iteration speed.
@@ -195,5 +214,9 @@ public:
     FNpc Npc;
     FCamera Camera;
     FObjectSubtype SubType;
+
+protected:
+
+    TVector2 Position;
 };
 

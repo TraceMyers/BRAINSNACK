@@ -19,6 +19,7 @@ extern TSession Session;
 extern TRenderer Renderer;
 extern TInput Input;
 extern TObjectMovement ObjectMovement;
+extern FObjectRef DebugRef;
 
 // ---------------------------------------------------------------------------------------------------------------------
 

@@ -1,5 +1,7 @@
 #pragma once
 
+#include "../math.h"
+
 class TObject;
 
 class TObjectMovement
@@ -10,7 +12,9 @@ public:
 
 protected:
 
-    void MoveDueToInput(TObject* Object, float DeltaTime);
+    bool MoveDueToInput(TObject* Object, TVector2& OutMoveDelta, float DeltaTime);
+
+    bool MoveDueToPhysics(TObject* Object, TVector2& OutMoveDelta, float DeltaTime);
 
     void MoveDueToAttachment(TObject* Object, float DeltaTime);
 

@@ -1,6 +1,7 @@
 #include "object.h"
 #include "../globals.h"
 #include "../core.h"
+#include "object_grid.h"
 
 TObject *TObject::Get(FObjectRef Ref)
 {
@@ -25,6 +26,11 @@ TObject *TObject::TryGet(FObjectRef& Ref, bool bAllowNullify)
     }
 }
 
+TObject *TObject::TryGet(const FObjectRef &Ref)
+{
+    return IsValid(Ref) ? &Session.Objects[Ref.Index] : nullptr;
+}
+
 bool TObject::IsValid(FObjectRef Ref)
 {
     return Session.Objects.TopIndex() >= Ref.Index
@@ -47,11 +53,12 @@ namespace
     void InitPlayer(TObject* Obj)
     {
         InitCharacter(Obj);
+        Obj->Character.HP = 100;
     }
 
     void SetNpcStateCdf(TObject* Obj, TArray<FNpcStateCdfEntry>* StateCdf, TVector2 Origin, TVector2 Extent)
     {
-        assert(IsPointInsideBox(Obj->Position, Origin - Extent, Origin + Extent));
+        assert(IsPointInsideBox(Obj->GetPosition(), Origin - Extent, Origin + Extent));
         Obj->Npc.StateProbabilityCdf = StateCdf;
         Obj->Npc.MoveOrigin = Origin;
         Obj->Npc.MoveExtent = Extent;
@@ -72,6 +79,8 @@ namespace
         case ENpcType::SomeGuy:
             SetNpcStateCdf(Obj, &NpcStateCdf::SomeGuy, {}, Session.LevelExtent);
             Obj->Movement.Speed = FObjectMovement::PLAYER_BASE_SPEED * 0.5f;
+            Obj->Character.HP = 5;
+            Obj->Flags |= EObjectFlags::IsEnemy;
             break;
         }
     }
@@ -105,6 +114,11 @@ void TObject::Init()
 
 void TObject::Release()
 {
+    if (!HasFlag(EObjectFlags::ReleaseWithoutDeath))
+    {
+        Die();
+    }
+
     switch (Self.Type)
     {
     case EObjectType::None:
@@ -127,9 +141,13 @@ void TObject::Release()
 
     DetachFromParent();
     DetachChildren();
+
+    Session.ObjectGrid->RemoveObjectFromGrid(this);
+    Attachments.Free();
+    Graphics.Free();
 }
 
-TVector2 TObject::GetPosition()
+TVector2 TObject::GetPosition() const
 {
     TVector2 Pos = Position;
     if (Self.Type == EObjectType::Camera)
@@ -195,3 +213,42 @@ TObject *TObject::TryGetParent()
     }
     return Parent;
 }
+
+TObject *TObject::TryGetParent() const
+{
+    TObject* Parent = nullptr;
+    if (HasFlag(EObjectFlags::MoveAsAttachment))
+    {
+        Parent = TObject::TryGet(AttachParent);
+    }
+    return Parent;
+}
+
+void TObject::Die()
+{
+}
+
+void TObject::SetPosition(TVector2 NewPosition)
+{
+    Session.ObjectGrid->RemoveObjectFromGrid(this);
+    Position = NewPosition;
+    Session.ObjectGrid->PlaceObjectIntoGrid(this, true);
+}
+
+namespace
+{
+    inline void GetCornersImpl(const FGraphic* Graphic, TVector2& OutUl, TVector2& OutLr, TVector2 Offset={}, float32 ExtentScale=1, EViewSpace OutSpace=EViewSpace::World)
+    {
+        OutUl = ConvertSpace(Graphic->Offset + Offset, Graphic->Space, OutSpace);
+        OutLr = ConvertSpace(Graphic->Offset + Offset + Graphic->Extent * 2 * ExtentScale, Graphic->Space, OutSpace);
+    }
+}
+
+void TObject::GetCorners(TVector2 &OutUpperLeft, TVector2 &OutLowerRight, EViewSpace OutSpace, float32 ExtentScale) const
+{
+    if (PrimaryGraphic() != nullptr)
+    {
+        GetCornersImpl(PrimaryGraphic(), OutUpperLeft, OutLowerRight, GetPosition(), ExtentScale, OutSpace);
+    }
+}
+

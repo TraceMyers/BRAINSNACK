@@ -4,3 +4,4 @@ TSession Session = {};
 TRenderer Renderer = {};
 TInput Input = {};
 TObjectMovement ObjectMovement = {};
+FObjectRef DebugRef = {};

@@ -136,6 +136,11 @@ struct FObjectRef
     {
         return memcmp(this, &Other, sizeof(FObjectRef)) == 0;
     }
+
+    bool operator != (const FObjectRef& Other) const
+    {
+        return memcmp(this, &Other, sizeof(FObjectRef)) != 0;
+    }
 };
 
 constexpr s32 INVALID_OBJECT_ID = 0;

@@ -205,8 +205,10 @@ public:
     // nullify the array and return its allocation
     void Free()
     {
-        TryInitializeAllocator();
-        Allocator->Free((void**)&Items);
+        if (Allocator)
+        {
+            Allocator->Free((void**)&Items);
+        }
         Allocator = nullptr;
         ItemCount = 0;
     }
@@ -297,10 +299,10 @@ public:
     // nullify the array, giving its allocation back
     void Free()
     {
-        char Buffer[2048] {0};
-        emscripten_get_callstack(EM_LOG_C_STACK, &Buffer[0], 2048);
-        TryInitializeAllocator();
-        Allocator->Free((void**)&Items);
+        if (Allocator)
+        {
+            Allocator->Free((void**)&Items);
+        }
         Allocator = nullptr;
         ItemCount = 0;
         ItemMax = 0;
@@ -314,7 +316,10 @@ public:
         const s32 NewSize = NewMax * sizeof(T);
         Allocator->Realloc((void**)&Items, OldSize, NewSize);
         ItemMax = NewMax;
-        ItemCount = ItemMax < ItemCount ? ItemMax : ItemCount;
+        if (ItemMax < ItemCount)
+        {
+            ItemCount = ItemMax;
+        }
     }
 
     // set the number of elements in the array. forces the maximum number of values up if necessary.
@@ -360,6 +365,28 @@ public:
         Items[ItemCount-1] = {};
         return Items[ItemCount-1];
     }
+
+    inline bool PushUnique(const T& Item)
+    {
+        const s32 Index = TArrayBase<T>::Find(Item);
+        if (Index == -1)
+        {
+            Push(Item);
+            return true;
+        }
+        return false;
+    }
+
+    // inline bool PushUnique(const T&& Item)
+    // {
+    //     const s32 Index = Find(Item);
+    //     if (Index == -1)
+    //     {
+    //         Push(Item);
+    //         return true;
+    //     }
+    //     return false;
+    // }
 
     // add every element in another array to this array
     inline void Append(const TDynamicArray<T>& OtherArray)
@@ -442,7 +469,8 @@ public:
 
 public:
 
-    // debug
+    using TArrayBase<T>::Data;
+    using TArrayBase<T>::Count;
 
 protected:
 

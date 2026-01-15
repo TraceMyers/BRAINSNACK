@@ -11,6 +11,8 @@
 #include "object/object.h"
 #include "fundamental_defs.h"
 
+class TObjectGrid;
+
 enum class ESessionMode : u8
 {
     Menu,
@@ -52,7 +54,7 @@ public:
         return Mode == ESessionMode::PlayGame ? MAX(TimeSeconds - TimeStartedPlay, 0.0f) : 0;
     }
 
-// protected:
+    void QueueReturnObjectToPool(const TObject* Object);
 
     void InitAllocators();
 
@@ -97,6 +99,10 @@ public:
 
     TMap<FObjectRef> LoadedObjects_OldRefToNewRef;
 
+    TDynamicArray<FObjectRef> QueuedObjectReleases;
+
+    TObjectGrid* ObjectGrid;
+
     TVector2 LevelExtent;
 
 protected:
@@ -112,7 +118,7 @@ public:
     static constexpr float LOG_FPS_WAIT_TIME = 1.0f;
 
     bool DebugSwitch(bool bDebugBreak=true);
-    
+
     bool bLogFps = false;
     float LogFpsTimer = LOG_FPS_WAIT_TIME;
     bool bBreakSwitch = false;

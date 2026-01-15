@@ -82,13 +82,6 @@ public:
 
     bool FinishedTransitionToGame() { return TransitionToGameAlpha == 1; }
 
-    void SetBrainTempColor(const Color4f& InColor, float32 ForTime)
-    {
-        assert(ForTime >= 0);
-        BrainTempColor = InColor;
-        BrainTempColorTimer = ForTime;
-    }
-
 protected:
 
     void DrawAnimatedSprite(const FGraphic& Graphic);
@@ -169,8 +162,8 @@ public:
     s32 BrainLineStepSize = 32;
 
     Color4f BrainDotColor = Color4f::White();
-    float32 BrainTempColorTimer = 0;
-    Color4f BrainTempColor = {0.9,0,0,1}; 
 
     float32 TransitionToGameAlpha = 0;
+    
+    float32 BrainTest = 1;
 };

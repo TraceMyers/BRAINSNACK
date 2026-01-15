@@ -395,13 +395,17 @@ inline const char* ToString(EObjectFlags EnumVal)
         return "SkipAIUpdate";
     case EObjectFlags::IsEditorGoober:
         return "IsEditorGoober";
+    case EObjectFlags::ReleaseWithoutDeath:
+        return "ReleaseWithoutDeath";
+    case EObjectFlags::IsEnemy:
+        return "IsEnemy";
     }
 }
 
 template <>
 inline s32 EnumValueCount<EObjectFlags>()
 {
-    return 10;
+    return 12;
 }
 
 inline const char* ToString(EOverlapChannel EnumVal)

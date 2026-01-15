@@ -95,6 +95,7 @@
 
 #include "core.h"
 #include "tests.h"
+#include "object/collision.h"
 
 // ---------------------------------------------------------------------------------------------------------------------
 
@@ -132,6 +133,7 @@ void TickGame(void* UserData)
     const float DeltaTime = Session.DeltaTime();
 
     Input.FrameUpdate(DeltaTime);
+    Collision::ProcessPlayerCollisions(DeltaTime);    
     ObjectMovement.FrameUpdate(DeltaTime);
     Renderer.RenderFrame(DeltaTime);
 }

@@ -8,6 +8,7 @@
 #include "renderer.h"
 #include "../core.h"
 #include "mesh.h"
+#include "../object/object_grid.h"
 
 #define DRAW_POINT(Point, Color)                                                                                \
     do                                                                                                          \
@@ -170,8 +171,10 @@ void TRenderer::RenderGame(float32 DeltaTime, float32 TransitionAlpha)
 {
     bTrimText = true;
 
+    // Session.ObjectGrid->DrawOccupiedCells();
+
     TDynamicArray<FGraphic> GraphicsToDraw;
-    const s32 ConservativeGraphicCountEstimate = (Session.Objects.TopIndex() + 1) * 2;
+    const s32 ConservativeGraphicCountEstimate = 1024;
     GraphicsToDraw.TempInit(ConservativeGraphicCountEstimate);
 
     for (int i = 0; i <= Session.Objects.TopIndex(); i++)
@@ -212,6 +215,7 @@ void TRenderer::RenderGame(float32 DeltaTime, float32 TransitionAlpha)
     const float32 HoverOffset = sin(Session.TimeSeconds*2.0f) * 8.0f * TransitionAlpha;
     BrainLocation.Y += HoverOffset;
     const float32 UseBrainScale = Lerp(BrainScaleInMenu(), BrainScaleInGame(), TransitionAlpha);
+
     RenderBrain(DeltaTime, BrainLocation, UseBrainScale);
 
     FlushDraws(); // text should draw over brain
@@ -226,7 +230,7 @@ void TRenderer::RenderGame(float32 DeltaTime, float32 TransitionAlpha)
     }
     else if (Session.TimeInGame() > 5.0f)
     {
-        // DrawText("Apologies that you probably wanted to play a cool game called BRAINSNACK. I'm still making it. Check back soon for updates :)", WindowExtent(), ETextSize::Medium, EHzTextAlign::Center, EVtTextAlign::Center, Color4f::White(), TEXT_SIZE_MEDIUM * 10.0f);
+        DrawText("Apologies that you probably wanted to play a cool game called BRAINSNACK. I'm still making it. Check back soon for updates :)", WindowExtent(), ETextSize::Medium, EHzTextAlign::Center, EVtTextAlign::Center, Color4f::White(), TEXT_SIZE_MEDIUM * 10.0f);
     }
 }
 
@@ -243,19 +247,9 @@ void TRenderer::RenderBrain(float32 DeltaTime, TVector2 ScreenLocation, float32 
     Color4f BrainLineColor;
     Color4f HighlightBrainLineColor;
 
-    if (BrainTempColorTimer > 0)
-    {
-        BrainTempColorTimer -= DeltaTime;
-        BrainLineColor = BrainTempColor;
-        HighlightBrainLineColor = Brighten(BrainTempColor, 0.1f);
-        BrainDotColor = Color4f::White();
-    }
-    else
-    {
-        BrainLineColor = Brighten(ToColor4f(RenderClearColor), 0.12f);
-        HighlightBrainLineColor = Brighten(ToColor4f(RenderClearColor), 0.4f);
-        BrainDotColor = Brighten(HighlightBrainLineColor, 0.2f);
-    }
+    BrainLineColor = Brighten(ToColor4f(RenderClearColor), 0.12f);
+    HighlightBrainLineColor = Brighten(ToColor4f(RenderClearColor), 0.4f);
+    BrainDotColor = Brighten(HighlightBrainLineColor, 0.2f);
 
     float32 BrainRotation = 0;
     if (Session.Mode != ESessionMode::PlayGame)
@@ -275,10 +269,27 @@ void TRenderer::RenderBrain(float32 DeltaTime, TVector2 ScreenLocation, float32 
         {
             BrainRotation = 2.0f * PI - BrainRotation;
         }
+        if (PlayerObj->Character.TakeHitCooldown > 0)
+        {
+            const s32 CooldownScaled = PlayerObj->Character.TakeHitCooldown * 5;
+            if ((CooldownScaled & 0x1) == 0)
+            {
+                BrainLineColor = ToColor4f(RenderClearColor);
+                BrainDotColor = Color4f::White();
+            }
+        }
     }
 
     TMatrix M;
     M.SetYRotation(BrainRotation);
+
+    // todo: speed of this affected by health
+    BrainTest += DeltaTime * 0.3f;
+    if (BrainTest > 1.3f)
+    {
+        BrainTest = 1.0f;
+    }
+    Color4f Color2 = Color4f::Mix(BrainDotColor, ToColor4f(RenderClearColor), (BrainTest - 1.0f) / 0.3f);
 
     for (s32 i = 0; i < BrainVerts.Count(); i++)
     {
@@ -292,12 +303,22 @@ void TRenderer::RenderBrain(float32 DeltaTime, TVector2 ScreenLocation, float32 
 
         DRAW_POINT(VertexPt, BrainDotColor)
 
+        TVector3 Vec2 = BrainVerts[i] * Scale * BrainTest;
+        // vertical flip. the dang brainstem is upward. todo: do before render
+        Vec2.Y *= -1.0f;
+        // rotate 
+        Vec2 = M.Mul(Vec2);
+        // todo: put translation into matrix
+        TVector2 VertexPt2 = Vec2.AsVector2() + ScreenLocation;
+
+        DRAW_POINT(VertexPt2, Color2)
+
         BrainLineStep = IncrementWrap(BrainLineStep, 0, BrainLineStepSize-1);
         if (BrainLineStep == 0)
         {
             DRAW_LINE(ScreenLocation, VertexPt, HighlightBrainLineColor);
         }
-        else
+        else if (Session.Mode != ESessionMode::PlayGame)
         {
             DRAW_LINE(ScreenLocation, VertexPt, BrainLineColor);
         }
@@ -353,7 +374,7 @@ SDL_Texture *TRenderer::LoadTexture(const s8 *Path) const
     return Texture;
 }
 
-void TRenderer::UpdateGraphics(TObject *Object, TDynamicArray<FGraphic> &OutDraws, float DeltaTime)
+void TRenderer::UpdateGraphics(TObject *Object, TDynamicArray<FGraphic>& OutDraws, float DeltaTime)
 {
     for (int i = 0; i < Object->Graphics.Count(); i++)
     {

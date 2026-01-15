@@ -74,6 +74,29 @@ void TInput::SystemInputUpdate(float DeltaTime)
                 case SDLK_LEFT:
                     bLeftInputPressed = true;
                     break;
+                case SDLK_RETURN:
+                    {
+                        FObjectSubtype SubType;
+                        SubType.NpcType = ENpcType::SomeGuy;
+                        Session.SpawnObject(EObjectType::NPC, {1,1}, {}, SubType);
+                    }
+                    break;
+                case SDLK_BACKSPACE:
+                    for (s32 i = 0; i <= Session.Objects.TopIndex(); i++)
+                    {
+                        if (!Session.Objects.IsItemInUse(i))
+                        {
+                            continue;
+                        }
+                        TObject* Obj = &Session.Objects[i];
+                        if (Obj->Self.Type == EObjectType::NPC && Obj->SubType.NpcType == ENpcType::SomeGuy)
+                        {
+                            DebugRef = Obj->Self;
+                            Session.QueueReturnObjectToPool(Obj);
+                            break;
+                        }
+                    }
+                    break;
                 default:;
                 }
                 break;

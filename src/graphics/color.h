@@ -15,8 +15,18 @@ struct Color4f
     static Color4f White() { return {1,1,1,1}; }
     static Color4f Black() { return {0,0,0,1}; }
     static Color4f Blue() { return {0,0,1,1}; }
+    static Color4f Red() { return {1,0,0,1}; }
     static Color4f LightGrey() { return {0.9f, 0.9f, 0.9f, 1.0f}; }
     static Color4f DarkGrey() { return {0.1f, 0.1f, 0.1f, 1.0f}; }
+    static Color4f Mix(const Color4f& A, const Color4f& B, float NormVal)
+    {
+        return {
+            Lerp(A.r, B.r, NormVal),
+            Lerp(A.g, B.g, NormVal),
+            Lerp(A.b, B.b, NormVal),
+            1.0f
+        };
+    }
     inline bool operator == (const Color4f& Other)
     {
         return memcmp(this, &Other, sizeof(Color4f)) == 0;

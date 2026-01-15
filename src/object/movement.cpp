@@ -1,5 +1,6 @@
 #include "movement.h"
 #include "../globals.h"
+#include "object_grid.h"
 
 namespace
 {
@@ -17,6 +18,9 @@ void TObjectMovement::FrameUpdate(float DeltaTime)
         return;
     }
 
+    TVector2 InputMoveDelta;
+    TVector2 PhysicsMoveDelta;
+
     for (int i = 0; i < Session.Objects.TopIndex()+1; i++)
     {
         if (!Session.Objects.IsItemInUse(i))
@@ -28,7 +32,24 @@ void TObjectMovement::FrameUpdate(float DeltaTime)
         {
             continue;
         }
-        MoveDueToInput(Obj, DeltaTime);
+
+        bool bDoMove = false;
+        bDoMove |= MoveDueToInput(Obj, InputMoveDelta, DeltaTime);
+        bDoMove |= MoveDueToPhysics(Obj, PhysicsMoveDelta, DeltaTime);
+
+        if (bDoMove)
+        {
+            const TVector2 NewPosition = Obj->GetPosition() + InputMoveDelta + PhysicsMoveDelta;
+            TVector2 Clamped = NewPosition;
+            if (Obj->Self.Type == EObjectType::NPC)
+            {
+                const TVector2 HardTetherUL = Obj->Npc.MoveOrigin - Obj->Npc.MoveExtent;
+                const TVector2 HardTetherLR = Obj->Npc.MoveOrigin + Obj->Npc.MoveExtent;
+                Clamped = NewPosition.Clamp(HardTetherUL, HardTetherLR);
+            }
+            Obj->SetPosition(Clamped);
+            Obj->Flags |= EObjectFlags::AnimateMovement;
+        }
     }
     for (int i = 0; i < Session.Objects.TopIndex()+1; i++)
     {
@@ -45,48 +66,70 @@ void TObjectMovement::FrameUpdate(float DeltaTime)
     }
 }
 
-void TObjectMovement::MoveDueToInput(TObject *Object, float DeltaTime)
+bool TObjectMovement::MoveDueToInput(TObject *Object, TVector2& OutMoveDelta, float DeltaTime)
 {
     Object->Flags &= ~TRACKING_MOVEMENT_FLAGS;
+    bool bTrackedInGrid = Object->HasFlag(EObjectFlags::PlacedInGrid);
 
-    // todo: grid stuff
-    const bool bTrackedInGrid = Object->HasFlag(EObjectFlags::PlacedInGrid);
-
+    if (Object->HasFlag(EObjectFlags::MoveAsAttachment))
+    {
+        if (bTrackedInGrid)
+        {
+            Session.ObjectGrid->RemoveObjectFromGrid(Object);
+        }
+        return false;
+    }
     if (!bTrackedInGrid)
     {
-
+        bTrackedInGrid = Session.ObjectGrid->PlaceObjectIntoGrid(Object, true);
     }
     if (Object->HasFlags(EObjectFlags::MoveAsAttachment | EObjectFlags::SkipMoveUpdate | EObjectFlags::IsEditorGoober))
     {
-        return;
+        return false;
     }
     if (!Object->HasFlag(EObjectFlags::MoveFromInput))
     {
-        return;
+        return false;
     }
-    // todo: interaction
 
     if (Object->Movement.bMoving)
     {
         Object->Orientation = Object->Movement.Direction;
-        const TVector2 NewPosition = Object->Position + ToVector2(Object->Movement.Direction) * Object->Movement.Speed * DeltaTime;
-        // todo: grid stuff
-        if (Object->Self.Type == EObjectType::NPC)
+        OutMoveDelta = ToVector2(Object->Movement.Direction) * Object->Movement.Speed * DeltaTime;
+        return true;
+    }
+    else
+    {
+        return false;
+    }
+}
+
+bool TObjectMovement::MoveDueToPhysics(TObject *Object, TVector2& OutMoveDelta, float DeltaTime)
+{
+    bool bMovement = false;
+    const float32 SpeedSq = Object->Character.PhysicsVelocity.MagnitudeSq();
+    if (SpeedSq > 1e-6f)
+    {
+        bMovement = true;
+        OutMoveDelta += Object->Character.PhysicsVelocity * DeltaTime;
+        const float32 Speed = sqrtf(SpeedSq);
+        const float32 PushDecay = Object->Character.Mass * 40.0f * DeltaTime;
+        if (Speed < PushDecay)
         {
-            const TVector2 HardTetherUL = Object->Npc.MoveOrigin - Object->Npc.MoveExtent;
-            const TVector2 HardTetherLR = Object->Npc.MoveOrigin + Object->Npc.MoveExtent;
-            if (IsPointInsideBox(NewPosition, HardTetherUL, HardTetherLR))
-            {
-                Object->Position = NewPosition;
-                Object->Flags |= EObjectFlags::AnimateMovement;
-            }
+            Object->Character.PhysicsVelocity = {};
         }
         else
         {
-            Object->Position = NewPosition;
-            Object->Flags |= EObjectFlags::AnimateMovement;
+            const TVector2 PhysVelocityNorm = Object->Character.PhysicsVelocity / Speed;
+            LOG("push decay %", PushDecay);
+            Object->Character.PhysicsVelocity -= PhysVelocityNorm * PushDecay;
         }
     }
+    else
+    {
+        Object->Character.PhysicsVelocity = {};
+    }
+    return bMovement;
 }
 
 void TObjectMovement::MoveDueToAttachment(TObject *Object, float DeltaTime)

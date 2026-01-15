@@ -26,11 +26,12 @@ void* TBumpAllocator::Alloc(u32 Size)
     const u32 AlignedSize = CeilToMultipleOfPow2(Size, BUMP_ALLOCATOR_ALIGN);
 
     const u32 OldOffset = Offset;
-    Offset += AlignedSize;
+    Offset += AlignedSize + AllocationSpacer;
     // all bump allocators in the game get their allocation at init and don't realloc
     assert(Allocated >= Offset);
 
     void* RetPtr = (void*)((u8*)Data + OldOffset);
+
     return RetPtr;
 }
 

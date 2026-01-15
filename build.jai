@@ -66,6 +66,8 @@ build :: (output_file_path: string) -> success: bool {
     array_add(*build_cmd, "-s");
     array_add(*build_cmd, "USE_SDL=3");
 
+    // array_add(*build_cmd, "-sSTACK_SIZE=128000");
+    // array_add(*build_cmd, "-sMEMORY64=1");
     // don't need multiple threads for this game.
     // array_add(*build_cmd, "-s");
     // array_add(*build_cmd, "USE_PTHREADS=1");

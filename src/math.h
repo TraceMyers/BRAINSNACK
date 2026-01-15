@@ -9,6 +9,7 @@ class TVector2
 public:
 
     TVector2() : X(0), Y(0) {}
+    TVector2(float Scalar) : X(Scalar), Y(Scalar) {}
     TVector2(float InX, float InY) : X(InX), Y(InY) {}
 
     inline TVector2 operator + (TVector2 OtherVec) const
@@ -61,8 +62,8 @@ public:
 
     inline TVector2& operator -= (TVector2 OtherVec)
     {
-        X += OtherVec.X;
-        Y += OtherVec.Y;
+        X -= OtherVec.X;
+        Y -= OtherVec.Y;
         return *this;
     }
 
@@ -140,6 +141,11 @@ public:
         return (*this - OtherVec).MagnitudeSq();
     }
 
+    inline TVector2 Clamp(TVector2 Min, TVector2 Max) const
+    {
+        return {CLAMP(X, Min.X, Max.X), CLAMP(Y, Min.Y, Max.Y)};
+    }
+
 public:
 
     float X;
@@ -202,8 +208,8 @@ public:
 
     inline TVector2i& operator -= (TVector2i OtherVec)
     {
-        X += OtherVec.X;
-        Y += OtherVec.Y;
+        X -= OtherVec.X;
+        Y -= OtherVec.Y;
         return *this;
     }
 
@@ -249,7 +255,10 @@ public:
         return *this;
     }
 
-    // void TVector2i ClampTo(TVector2i )
+    inline TVector2i Clamp(TVector2i Min, TVector2i Max)
+    {
+        return {CLAMP(X, Min.X, Max.X), CLAMP(Y, Min.Y, Max.Y)};
+    }
 
 public:
 
@@ -474,6 +483,15 @@ inline bool IsPointInsideBox(TVector2 Point, TVector2 UpperLeft, TVector2 LowerR
         return false;
     }
     return true;
+}
+
+inline bool DoBoxesOverlap(TVector2 UlA, TVector2 LrA, TVector2 UlB, TVector2 LrB)
+{
+    const s32 OverlapUlX = MAX(UlA.X, UlB.X);
+    const s32 OverlapLrX = MIN(LrA.X, LrB.X);
+    const s32 OverlapUlY = MAX(UlA.Y, UlB.Y);
+    const s32 OverlapLrY = MIN(LrA.Y, LrB.Y);
+    return OverlapLrX >= OverlapUlX && OverlapLrY >= OverlapUlY;
 }
 
 inline float32 Respace(float32 X, TVector2 InRange, TVector2 OutRange)
