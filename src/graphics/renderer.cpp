@@ -228,7 +228,7 @@ void TRenderer::RenderGame(float32 DeltaTime, float32 TransitionAlpha)
             DrawText("GO!", WindowExtent(), ETextSize::Medium, EHzTextAlign::Center, EVtTextAlign::Center);
         }
     }
-    else if (Session.TimeInGame() > 5.0f)
+    else if (Session.TimeInGame() > 8.0f)
     {
         DrawText("Apologies that you probably wanted to play a cool game called BRAINSNACK. I'm still making it. Check back soon for updates :)", WindowExtent(), ETextSize::Medium, EHzTextAlign::Center, EVtTextAlign::Center, Color4f::White(), TEXT_SIZE_MEDIUM * 10.0f);
     }
