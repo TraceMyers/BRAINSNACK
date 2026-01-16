@@ -228,9 +228,9 @@ void TRenderer::RenderGame(float32 DeltaTime, float32 TransitionAlpha)
             DrawText("GO!", WindowExtent(), ETextSize::Medium, EHzTextAlign::Center, EVtTextAlign::Center);
         }
     }
-    else if (Session.TimeInGame() > 8.0f)
+    else if (Session.TimeInGame() > 3.0f)
     {
-        DrawText("Apologies that you probably wanted to play a cool game called BRAINSNACK. I'm still making it. Check back soon for updates :)", WindowExtent(), ETextSize::Medium, EHzTextAlign::Center, EVtTextAlign::Center, Color4f::White(), TEXT_SIZE_MEDIUM * 10.0f);
+        DrawText("I'm taking a BRAIN break from game development for the remainder of January. Check back later for updates :). you can hit [enter] to spawn guys and [backspace] to delete them, but they will just bump into your forever.", {10, 10}, ETextSize::Medium, EHzTextAlign::Left, EVtTextAlign::Top, Color4f::White(), TEXT_SIZE_MEDIUM * 10.0f);
     }
 }
 

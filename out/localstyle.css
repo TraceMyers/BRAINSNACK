@@ -124,6 +124,7 @@ body {
 canvas {
   display: block;
   left: 10.5%;
+  touch-action: pan-y;
   /* position: absolute; */
 }
 

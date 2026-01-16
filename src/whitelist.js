@@ -5,3 +5,13 @@ document.addEventListener("keydown", e => {
         e.stopImmediatePropagation();
     }
 }, true);
+
+// don't consume mouse wheel or touch-scroll input
+document.addEventListener("wheel", e => {
+    e.stopImmediatePropagation();
+}, { capture: true, passive: true })
+
+// don't consume mouse wheel or touch-scroll input
+document.addEventListener("touchMove", e => {
+    e.stopImmediatePropagation();
+}, { capture: true, passive: true })
